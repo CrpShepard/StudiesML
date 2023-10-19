@@ -3,7 +3,7 @@ import numpy as np
 import random
 
 W1 = np.array([[0.1, 0.1, 0.1], [0.1, 0.1, 0.1]]) # нейронки 1 слоя
-W2 = np.array([0.1, 0.1]) # нейронка 2 слоя
+W2 = np.array([[0.1, 0.1], [0.1, 0.1], [0.1, 0.1]]) # нейронка 2 слоя
 
 X = [[-1, -1, -1],
      [-1, -1, 1],
@@ -31,7 +31,7 @@ def forward(x):
     #return f(W2[0] * f(W1[0][0] * x[0] + W1[0][1] * x[1] + W1[0][2] * x[2]) + W2[1] * f(W1[1][0] * x[0] + W1[1][1] * x[1] + W1[1][2] * x[2]))
 
     sum = np.dot(W2, fout)
-    y = f(sum)
+    y = f(sum)[0]
     return (y, fout)
 
 def train():
@@ -43,13 +43,28 @@ def train():
     err = y - d[i]
     s = err * df(y)
 
-    W2[0] = W2[0] - l * s * fout[0]
-    W2[1] = W2[1] - l * s * fout[1]
+    #W2[0] = W2[0] - l * s * fout[0]
+    #W2[1] = W2[1] - l * s * fout[1]
 
-    s = W2 * s * df(fout)
+    W2[0][0] = W2[0][0] - l * s * fout[0]
+    W2[0][1] = W2[0][1] - l * s * fout[1]
+    W2[1][0] = W2[1][0] - l * s * fout[0]
+    W2[1][1] = W2[1][1] - l * s * fout[1]
+    W2[2][0] = W2[2][0] - l * s * fout[0]
+    W2[2][1] = W2[2][1] - l * s * fout[1]
 
-    W1[0, :] = W1[0, :] - l * np.array(X[i]) * s[0]
-    W1[1, :] = W1[0, :] - l * np.array(X[i]) * s[1]
+    sigm = W2 * s * df(fout)[0]
+    #print("sigm", sigm)
+
+    W1[0, :] = W1[0, :] - l * np.array(X[i]) * sigm[0][0]
+    W1[1, :] = W1[1, :] - l * np.array(X[i]) * sigm[0][0]
+    #W1[0][0] = W1[0][0] - l * np.array(X[i]) * sigm[0][0]
+    #W1[0][1] = W1[0][1] - l * np.array(X[i]) * sigm[0][1]
+    #W1[0][2] = W1[0][2] - l * np.array(X[i]) * sigm[1][0]
+    #W1[1][0] = W1[1][0] - l * np.array(X[i]) * sigm[1][1]
+    #W1[1][1] = W1[1][1] - l * np.array(X[i]) * sigm[2][0]
+    #W1[1][2] = W1[1][2] - l * np.array(X[i]) * sigm[2][1]
+
 
 def start():
     y1 = np.array([])
