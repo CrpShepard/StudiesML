@@ -3,7 +3,8 @@ import numpy as np
 import random
 
 W1 = np.array([[0.1, 0.1, 0.1], [0.1, 0.1, 0.1]]) # нейронки 1 слоя
-W2 = np.array([[0.1, 0.1], [0.1, 0.1], [0.1, 0.1]]) # нейронка 2 слоя
+W2 = np.array([[0.1, 0.1], [0.1, 0.1], [0.1, 0.1]]) # нейронки 2 слоя
+W3 = np.array([0.1, 0.1, 0.1]) # выходной слой
 
 X = [[-1, -1, -1],
      [-1, -1, 1],
@@ -16,7 +17,7 @@ X = [[-1, -1, -1],
 
 d = [-1, 1, -1, 1, -1, 1, -1, -1]
 l = 0.01
-N = 10000
+N = 500000
 
 def f(x):
     return 2 / (1 + np.exp(-x)) - 1
@@ -28,43 +29,41 @@ def forward(x):
     sum = np.dot(W1, x)
     fout = np.array([f(x) for x in sum])
 
-    #return f(W2[0] * f(W1[0][0] * x[0] + W1[0][1] * x[1] + W1[0][2] * x[2]) + W2[1] * f(W1[1][0] * x[0] + W1[1][1] * x[1] + W1[1][2] * x[2]))
-
     sum = np.dot(W2, fout)
-    y = f(sum)[0]
-    return (y, fout)
+    fout2 = np.array([f(x) for x in sum])
+
+    sum = np.dot(W3, fout2)
+
+    y = f(sum)
+    return (y, fout, fout2)
 
 def train():
-    global W1, W2
+    global W1, W2, W3
 
     i = random.randint(0, len(X) - 1)
-    y, fout = forward(X[i])
+    y, fout, fout2 = forward(X[i])
 
     err = y - d[i]
-    s = err * df(y)
+    s3 = err * df(y)
 
-    #W2[0] = W2[0] - l * s * fout[0]
-    #W2[1] = W2[1] - l * s * fout[1]
+    W3[0] = W3[0] - l * s3 * fout2[0]
+    W3[1] = W3[1] - l * s3 * fout2[1]
+    W3[2] = W3[2] - l * s3 * fout2[2]
 
-    W2[0][0] = W2[0][0] - l * s * fout[0]
-    W2[0][1] = W2[0][1] - l * s * fout[1]
-    W2[1][0] = W2[1][0] - l * s * fout[0]
-    W2[1][1] = W2[1][1] - l * s * fout[1]
-    W2[2][0] = W2[2][0] - l * s * fout[0]
-    W2[2][1] = W2[2][1] - l * s * fout[1]
+    s2 = s3 * W3 * df(fout2)
 
-    sigm = W2 * s * df(fout)[0]
-    #print("sigm", sigm)
-
-    W1[0, :] = W1[0, :] - l * np.array(X[i]) * sigm[0][0]
-    W1[1, :] = W1[1, :] - l * np.array(X[i]) * sigm[0][0]
-    #W1[0][0] = W1[0][0] - l * np.array(X[i]) * sigm[0][0]
-    #W1[0][1] = W1[0][1] - l * np.array(X[i]) * sigm[0][1]
-    #W1[0][2] = W1[0][2] - l * np.array(X[i]) * sigm[1][0]
-    #W1[1][0] = W1[1][0] - l * np.array(X[i]) * sigm[1][1]
-    #W1[1][1] = W1[1][1] - l * np.array(X[i]) * sigm[2][0]
-    #W1[1][2] = W1[1][2] - l * np.array(X[i]) * sigm[2][1]
-
+    W2[0, :] = W2[0, :] - l * s2[0] * f(fout[0])
+    W2[1, :] = W2[1, :] - l * s2[1] * f(fout[0])
+    W2[2, :] = W2[2, :] - l * s2[2] * f(fout[0])
+   
+    G1 = s2[0] * W2[0, 0] + s2[1] * W2[1, 0] + s2[2] * W2[2, 0]
+    G2 = s2[0] * W2[0, 1] + s2[1] * W2[1, 1] + s2[2] * W2[2, 1]
+    s11 = G1 * df(fout[0])
+    s12 = G2 * df(fout[1])
+        
+    W1[0, :] = W1[0, :] - l * s11 * np.array(X[i])
+    W1[1, :] = W1[1, :] - l * s12 * np.array(X[i])
+    
 
 def start():
     y1 = np.array([])
@@ -73,7 +72,7 @@ def start():
     print("Before training")
 
     for i in range(len(X)):
-        y, fout = forward(X[i])
+        y, fout, fout2 = forward(X[i])
         y1 = np.append(y1, y)
         print(y, d[i])
 
@@ -83,7 +82,7 @@ def start():
         train()
 
     for i in range(len(X)):
-        y, fout = forward(X[i])
+        y, fout, fout2 = forward(X[i])
         y2 = np.append(y2, y)
         print(y, d[i])
 
