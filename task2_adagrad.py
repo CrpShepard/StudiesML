@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import math
 
 a = np.array([[-1, -1]])
-h = 0.01
+h = 0.1
 G = np.array([[0, 0]])
 
 def f(x):
