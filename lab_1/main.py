@@ -5,10 +5,10 @@ from sympy import symbols, Eq, solve
 x = []
 y = []
 
-filename = open('linreg.csv', 'r')
+filename = open('lab_1/linreg.csv', 'r')
 file = csv.DictReader(filename)
 
-with open('linreg.csv', 'r') as source:
+with open('lab_1/linreg.csv', 'r') as source:
     for row_number, row in enumerate(source.readlines()):
         if row_number > 0 and row_number < 22:
             data = row.replace('\n', '').split('\t')
